@@ -1,0 +1,11 @@
+﻿services:
+  - type: web
+    name: perfectkey-api
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: Dockerfile
+    autoDeploy: true
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production

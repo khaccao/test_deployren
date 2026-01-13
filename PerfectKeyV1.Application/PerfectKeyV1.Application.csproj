@@ -1,34 +1,29 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
+
+  <!-- 🔑 BẮT BUỘC: dùng HttpContext, HttpRequest, Cache, Config -->
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\PerfectKeyV1.Domain\PerfectKeyV1.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Core .NET Packages -->
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.11" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.11" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="9.0.11" />
-    
-    <!-- ASP.NET Core Packages -->
-    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.3.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.11" />
-    
-    <!-- Security & JWT -->
-    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.15.0" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.15.0" />
-    
+    <!-- Security -->
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.6.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.6.0" />
+
     <!-- Hashing -->
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
-    
-    <!-- User Agent Parser -->
+
+    <!-- User Agent -->
     <PackageReference Include="UAParser" Version="3.1.47" />
   </ItemGroup>
 
