@@ -337,9 +337,11 @@ namespace PerfectKeyV1.Api.Controllers.V1
         private int GetCurrentUserIdInternal()
         {
             var userIdClaim = User.FindFirst("userId") ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-            Console.WriteLine($"Claims: {string.Join(", ", User.Claims.Select(c => $"{c.Type}: {c.Value}"))}");
-            Console.WriteLine($"Selected userIdClaim: {userIdClaim?.Type}: {userIdClaim?.Value}");
-            return userIdClaim != null ? int.Parse(userIdClaim.Value) : 0;
+            if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var userId))
+            {
+                return userId;
+            }
+            return 0;
         }
     }
 

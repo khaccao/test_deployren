@@ -22,24 +22,33 @@ namespace PerfectKeyV1.Infrastructure
             
             if (string.IsNullOrWhiteSpace(defaultConnection))
             {
-                Console.WriteLine("Warning: DefaultConnection is empty or null. Using fallback connection string.");
-                defaultConnection = "Server=.;Database=PerfectKey;Trusted_Connection=true;TrustServerCertificate=true;";
+                Console.WriteLine("Warning: DefaultConnection is empty or null. Using fallback.");
+                defaultConnection = "Server=localhost;Database=PerfectKey;User Id=sa;Password=Password123;Encrypt=false;";
             }
             else
             {
-                // Remove whitespaces that might cause issues
-                defaultConnection = defaultConnection.Trim();
+                // Aggressively clean the connection string
+                string original = defaultConnection;
+                
+                // Remove any surrounding quotes (sometimes added by env var managers)
+                defaultConnection = defaultConnection.Trim().Trim('"').Trim('\'');
+                
+                // Remove non-printable characters or BOMs
+                defaultConnection = new string(defaultConnection.Where(c => c >= 32 && c <= 126).ToArray()).Trim();
 
                 // Mask password for logging
                 var masked = defaultConnection.Contains("Password=") 
                     ? System.Text.RegularExpressions.Regex.Replace(defaultConnection, "Password=[^;]+", "Password=******")
-                    : defaultConnection;
+                    : (defaultConnection.Contains("PWD=") 
+                        ? System.Text.RegularExpressions.Regex.Replace(defaultConnection, "PWD=[^;]+", "PWD=******")
+                        : defaultConnection);
                 
-                Console.WriteLine($"Using connection string (length: {defaultConnection.Length}): {masked}");
+                Console.WriteLine($"ConnString cleaned. Original length: {original.Length}, New length: {defaultConnection.Length}");
+                Console.WriteLine($"Using: {masked}");
                 
                 if (defaultConnection.Length > 0)
                 {
-                    Console.WriteLine($"First 5 chars: [{(int)defaultConnection[0]}, {(int)defaultConnection[1]}, {(int)defaultConnection[2]}, {(int)defaultConnection[3]}, {(int)defaultConnection[4]}] (ASCII codes)");
+                    Console.WriteLine($"Index 0 char code: {(int)defaultConnection[0]} (char: '{defaultConnection[0]}')");
                 }
             }
 

@@ -3,7 +3,7 @@ using PerfectKeyV1.Domain.Enums;
 
 namespace PerfectKeyV1.Application.DTOs.Auth
 {
-    public class UserDto
+    public class AuthUserDto
     {
         public int Id { get; set; }
         public Guid Guid { get; set; }

@@ -1092,9 +1092,9 @@ namespace PerfectKeyV1.Application.Services
             return authHeader?.Replace("Bearer ", "") ?? string.Empty;
         }
 
-        private UserDto MapToUserDto(User user)
+        private AuthUserDto MapToUserDto(User user)
         {
-            return new UserDto
+            return new AuthUserDto
             {
                 Id = user.Id,
                 Guid = user.Guid,

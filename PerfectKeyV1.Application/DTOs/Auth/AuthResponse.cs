@@ -14,7 +14,7 @@ namespace PerfectKeyV1.Application.DTOs.Auth
         public string? Token { get; set; }
         public string? RefreshToken { get; set; }
         public DateTime? Expiration { get; set; }
-        public UserDto? User { get; set; }
+        public AuthUserDto? User { get; set; }
         public int? SessionId { get; set; }
     }
 }

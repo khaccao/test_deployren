@@ -150,6 +150,9 @@ builder.Services.AddSwaggerGen(options =>
 
     options.OperationFilter<AddAuthHeaderOperationFilter>();
 
+    // Fix for duplicate schemaId "UserDto"
+    options.CustomSchemaIds(type => type.ToString());
+
     var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     Console.WriteLine($"Looking for Swagger XML at: {xmlPath}");
