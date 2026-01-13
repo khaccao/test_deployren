@@ -17,9 +17,12 @@ namespace PerfectKeyV1.Infrastructure
             if (configuration == null)
                 throw new ArgumentNullException(nameof(configuration));
 
-            // Database
-            var defaultConnection = configuration.GetConnectionString("DefaultConnection");
-            
+            // Database - Check multiple possible keys for the connection string
+            var defaultConnection = configuration.GetConnectionString("DefaultConnection")
+                ?? configuration["DefaultConnection"]
+                ?? configuration["ConnectionStrings:DefaultConnection"]
+                ?? configuration["DB_CONNECTION"];
+
             if (string.IsNullOrWhiteSpace(defaultConnection))
             {
                 Console.WriteLine("Warning: DefaultConnection is empty or null. Using fallback.");
@@ -27,29 +30,62 @@ namespace PerfectKeyV1.Infrastructure
             }
             else
             {
-                // Aggressively clean the connection string
                 string original = defaultConnection;
                 
-                // Remove any surrounding quotes (sometimes added by env var managers)
-                defaultConnection = defaultConnection.Trim().Trim('"').Trim('\'');
-                
-                // Remove non-printable characters or BOMs
-                defaultConnection = new string(defaultConnection.Where(c => c >= 32 && c <= 126).ToArray()).Trim();
+                // 1. Remove literal quotes if they exist
+                if (defaultConnection.StartsWith("\"") && defaultConnection.EndsWith("\""))
+                    defaultConnection = defaultConnection.Substring(1, defaultConnection.Length - 2);
+                if (defaultConnection.StartsWith("'") && defaultConnection.EndsWith("'"))
+                    defaultConnection = defaultConnection.Substring(1, defaultConnection.Length - 2);
 
-                // Mask password for logging
+                // 2. Trim and check for BOM or hidden characters
+                defaultConnection = defaultConnection.Trim();
+                
+                // 3. Log details for debugging
                 var masked = defaultConnection.Contains("Password=") 
                     ? System.Text.RegularExpressions.Regex.Replace(defaultConnection, "Password=[^;]+", "Password=******")
                     : (defaultConnection.Contains("PWD=") 
                         ? System.Text.RegularExpressions.Regex.Replace(defaultConnection, "PWD=[^;]+", "PWD=******")
-                        : defaultConnection);
-                
-                Console.WriteLine($"ConnString cleaned. Original length: {original.Length}, New length: {defaultConnection.Length}");
-                Console.WriteLine($"Using: {masked}");
+                        : "NOT_MASKED_OR_HIDDEN");
+
+                Console.WriteLine("--- DB CONFIGURATION DEBUG ---");
+                Console.WriteLine($"Original Length: {original.Length}");
+                Console.WriteLine($"Final Length: {defaultConnection.Length}");
                 
                 if (defaultConnection.Length > 0)
                 {
-                    Console.WriteLine($"Index 0 char code: {(int)defaultConnection[0]} (char: '{defaultConnection[0]}')");
+                    var firstBytes = string.Join(", ", defaultConnection.Take(Math.Min(10, defaultConnection.Length)).Select(c => ((int)c).ToString()));
+                    Console.WriteLine($"First {Math.Min(10, defaultConnection.Length)} char codes: [{firstBytes}]");
                 }
+                
+                if (masked == "NOT_MASKED_OR_HIDDEN") 
+                {
+                    // If not masked, show a safe version
+                    var safeShow = defaultConnection.Length > 20 ? defaultConnection.Substring(0, 20) + "..." : defaultConnection;
+                    Console.WriteLine($"ConnString (safe start): {safeShow}");
+                }
+                else 
+                {
+                    Console.WriteLine($"ConnString (masked): {masked}");
+                }
+                Console.WriteLine("------------------------------");
+
+                if (string.IsNullOrWhiteSpace(defaultConnection))
+                {
+                    Console.WriteLine("CRITICAL: Connection string became empty after cleaning! Reverting to fallback.");
+                    defaultConnection = "Server=localhost;Database=PerfectKey;User Id=sa;Password=Password123;Encrypt=false;";
+                }
+            }
+
+            // Test if we can create a SqlConnectionStringBuilder (will throw if format is bad)
+            try 
+            {
+                var builder = new Microsoft.Data.SqlClient.SqlConnectionStringBuilder(defaultConnection);
+                Console.WriteLine("✓ Connection string format validated by SqlConnectionStringBuilder");
+            }
+            catch (Exception ex) 
+            {
+                Console.WriteLine($"⚠ Connection string format validation failed: {ex.Message}");
             }
 
             services.AddDbContext<ApplicationDbContext>(options =>

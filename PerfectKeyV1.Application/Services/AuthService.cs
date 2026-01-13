@@ -73,6 +73,7 @@ namespace PerfectKeyV1.Application.Services
                     Console.WriteLine($"Gateway token received: {gatewayResponse.Token?.Substring(0, Math.Min(50, gatewayResponse.Token.Length))}...");
 
                     // Tìm hoặc tạo user trong local database từ thông tin Gateway
+                    Console.WriteLine($"Step 1b: Syncing user {request.Username} with local database...");
                     var user = await GetOrCreateUserFromGatewayAsync(request.Username, gatewayResponse.UserInfo);
 
                     if (user == null)
