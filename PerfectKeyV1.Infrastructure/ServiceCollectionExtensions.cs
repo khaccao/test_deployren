@@ -18,15 +18,37 @@ namespace PerfectKeyV1.Infrastructure
                 throw new ArgumentNullException(nameof(configuration));
 
             // Database
-            var defaultConnection = configuration.GetConnectionString("DefaultConnection")
-                ?? "Server=.;Database=PerfectKey;Trusted_Connection=true;TrustServerCertificate=true;";
+            var defaultConnection = configuration.GetConnectionString("DefaultConnection");
+            
+            if (string.IsNullOrWhiteSpace(defaultConnection))
+            {
+                Console.WriteLine("Warning: DefaultConnection is empty or null. Using fallback connection string.");
+                defaultConnection = "Server=.;Database=PerfectKey;Trusted_Connection=true;TrustServerCertificate=true;";
+            }
+            else
+            {
+                // Remove whitespaces that might cause issues
+                defaultConnection = defaultConnection.Trim();
+
+                // Mask password for logging
+                var masked = defaultConnection.Contains("Password=") 
+                    ? System.Text.RegularExpressions.Regex.Replace(defaultConnection, "Password=[^;]+", "Password=******")
+                    : defaultConnection;
+                
+                Console.WriteLine($"Using connection string (length: {defaultConnection.Length}): {masked}");
+                
+                if (defaultConnection.Length > 0)
+                {
+                    Console.WriteLine($"First 5 chars: [{(int)defaultConnection[0]}, {(int)defaultConnection[1]}, {(int)defaultConnection[2]}, {(int)defaultConnection[3]}, {(int)defaultConnection[4]}] (ASCII codes)");
+                }
+            }
 
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(defaultConnection));
 
             // Redis Cache với fallback
             var redisConnection = configuration.GetConnectionString("Redis");
-            if (!string.IsNullOrEmpty(redisConnection))
+            if (!string.IsNullOrWhiteSpace(redisConnection))
             {
                 try
                 {

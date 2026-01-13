@@ -152,8 +152,16 @@ builder.Services.AddSwaggerGen(options =>
 
     var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    Console.WriteLine($"Looking for Swagger XML at: {xmlPath}");
     if (File.Exists(xmlPath))
+    {
         options.IncludeXmlComments(xmlPath);
+        Console.WriteLine("Swagger XML comments included.");
+    }
+    else
+    {
+        Console.WriteLine("Warning: Swagger XML file not found.");
+    }
 });
 
 // ==================== LOGGING ====================
@@ -169,19 +177,32 @@ builder.Services.AddHealthChecks();
 // ==================== BUILD ====================
 var app = builder.Build();
 
-// ==================== MIDDLEWARE ====================
-app.UseSwagger();
+app.UseDeveloperExceptionPage();
+
+app.UseSwagger(c =>
+{
+    c.RouteTemplate = "swagger/{documentName}/swagger.json";
+});
+
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "PerfectKey API v1");
     c.RoutePrefix = "swagger";
+    c.DisplayRequestDuration();
+    c.DefaultModelsExpandDepth(-1); // Hide schemas by default
 });
 
 app.UseCors("AllowAll");
 
+// Render is always Production, but we want to see errors and use Https
 if (app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
+}
+else
+{
+    // On Render, HTTPS is handled by the load balancer, but we can still redirect if needed
+    // app.UseHttpsRedirection(); 
 }
 
 app.UseAuthentication();
